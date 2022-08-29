@@ -1,0 +1,24 @@
+Parameters:
+  TypeProject:
+    Type: String
+
+Resources:
+  DynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: "email"
+          AttributeType: "S"
+      KeySchema:
+        - AttributeName: "email"
+          KeyType: "HASH"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+      TableName: otp-table
+
+Outputs:
+  DynamoDBTable:
+    Value: !Ref DynamoDBTable
+    Export:
+      Name: !Sub ${TypeProject}-otp-table

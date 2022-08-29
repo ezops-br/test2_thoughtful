@@ -1,0 +1,13 @@
+{
+  "scripts": {
+    "compile": "yarn tsc --build --force"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.102",
+    "@types/node": "^18.7.13",
+    "typescript": "^4.8.2"
+  },
+  "dependencies": {
+    "senselogs": "^1.0.3"
+  }
+}

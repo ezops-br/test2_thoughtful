@@ -1,0 +1,111 @@
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+Parameters:
+  TypeProject:
+    Type: String
+
+  AcmCertificate:
+    Type: String
+
+  DomainName:
+    Type: String
+
+  NameAPI:
+    Type: String
+
+  ServiceNameCreateOTP:
+    Type: String
+
+  ServiceNameVerifyOTP:
+    Type: String
+
+  Timestamp:
+    Type: String
+    Description: "Timestamp"
+
+Resources:
+  ApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub ${TypeProject}-Api
+      StageName: Development
+      OpenApiVersion: 3.0.3
+      Cors:
+        AllowOrigin: "'*'"
+        AllowMethods: "'DELETE,GET,HEAD,OPTIONS,PATCH,POST,PUT'"
+        AllowHeaders: "'X-Amz-Date,X-Api-Key,X-Amz-Security-Token,X-Requested-With,X-Auth-Token,Referer,User-Agent,Origin,Content-Type,Authorization,Accept,Access-Control-Allow-Methods,Access-Control-Allow-Origin,Access-Control-Allow-Headers'"
+      Domain:
+        DomainName: !Sub "${NameAPI}.${DomainName}"
+        CertificateArn: !Ref AcmCertificate
+        EndpointConfiguration: EDGE
+        Route53:
+          HostedZoneName: !Sub ${DomainName}.
+
+  LambdaCreateOTP:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${TypeProject}-${ServiceNameCreateOTP}
+      Handler: index.handler
+      Runtime: nodejs16.x
+      Description: ""
+      Timeout: 10
+      MemorySize: 256
+      Role:
+        "Fn::ImportValue": !Sub ${TypeProject}-ArnRole
+      CodeUri:
+        Bucket:
+          "Fn::ImportValue": !Sub ${TypeProject}-lambda
+        Key: CreateOTP/lambda.zip
+      Environment:
+        Variables:
+          TABLE_NAME:
+            "Fn::ImportValue": !Sub ${TypeProject}-otp-table
+          Timestamp: !Ref Timestamp
+      Events:
+        OTPCreate:
+          Type: Api
+          Properties:
+            Path: /otp/create
+            Method: post
+            RestApiId:
+              Ref: ApiGateway
+
+  LambdaVerifyOTP:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${TypeProject}-${ServiceNameVerifyOTP}
+      Handler: index.handler
+      Runtime: nodejs16.x
+      Description: ""
+      Timeout: 10
+      MemorySize: 256
+      Role:
+        "Fn::ImportValue": !Sub ${TypeProject}-ArnRole
+      CodeUri:
+        Bucket:
+          "Fn::ImportValue": !Sub ${TypeProject}-lambda
+        Key: VerifyOTP/lambda.zip
+      Environment:
+        Variables:
+          TABLE_NAME:
+            "Fn::ImportValue": !Sub ${TypeProject}-otp-table
+          Timestamp: !Ref Timestamp
+      Events:
+        OTPVerify:
+          Type: Api
+          Properties:
+            Path: /otp/verify
+            Method: post
+            RestApiId:
+              Ref: ApiGateway
+
+Outputs:
+  LambdaNameCreateOTP:
+    Value: !Ref LambdaCreateOTP
+    Export:
+      Name: !Sub ${ServiceNameCreateOTP}-${TypeProject}-LambdaName
+
+  LambdaNameVerifyOTP:
+    Value: !Ref LambdaVerifyOTP
+    Export:
+      Name: !Sub ${ServiceNameVerifyOTP}-${TypeProject}-LambdaName

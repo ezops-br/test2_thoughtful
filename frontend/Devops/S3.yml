@@ -1,0 +1,42 @@
+Parameters:
+  TypeProject:
+    Type: String
+
+Resources:
+  S3BucketSite:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${TypeProject}-${AWS::Region}-ezops-site
+      AccessControl: PublicRead
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders:
+              - "*"
+            AllowedMethods:
+              - GET
+            AllowedOrigins:
+              - "*"
+      WebsiteConfiguration:
+        IndexDocument: index.html
+
+  S3BucketSitePolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Sub ${TypeProject}-${AWS::Region}-ezops-site
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action:
+              - "s3:GetObject"
+            Effect: Allow
+            Resource: !Join
+              - ""
+              - - "arn:aws:s3:::"
+                - !Sub ${TypeProject}-${AWS::Region}-ezops-site
+                - /*
+            Principal: "*"
+Outputs:
+  S3BucketSite:
+    Value: !Ref S3BucketSite
+    Export:
+      Name: !Sub ${TypeProject}-site

@@ -1,0 +1,15 @@
+Parameters:
+  TypeProject:
+    Type: String
+
+Resources:
+  S3BucketLambda:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${TypeProject}-${AWS::Region}-ezops-lambda
+
+Outputs:
+  S3BucketLambda:
+    Value: !Ref S3BucketLambda
+    Export:
+      Name: !Sub ${TypeProject}-lambda
