@@ -15,6 +15,7 @@ interface IState {
 export default function CheckOTP() {
   const location = useLocation()
   const navigate = useNavigate()
+
   const [email, setEmail] = useState("")
   const [otp, setOTP] = useState("")
 
